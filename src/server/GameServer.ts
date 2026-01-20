@@ -40,6 +40,7 @@ export class GameServer {
 
   private turns: Turn[] = [];
   private intents: Intent[] = [];
+  private owner: ClientID | null = null;
   public activeClients: Client[] = [];
   private allClients: Map<ClientID, Client> = new Map();
   private clientsDisconnectedStatus: Map<ClientID, boolean> = new Map();
@@ -757,10 +758,14 @@ export class GameServer {
   public gameInfo(): GameInfo {
     return {
       gameID: this.id,
-      clients: this.activeClients.map((c) => ({
-        username: c.username,
-        clientID: c.clientID,
-      })),
+      clients: {
+        owner:
+          this.owner !== null ? this.allClients.get(this.owner) : undefined,
+        all: this.activeClients.map((c) => ({
+          username: c.username,
+          clientID: c.clientID,
+        })),
+      },
       gameConfig: this.gameConfig,
       msUntilStart: this.isPublic()
         ? this.createdAt + this.config.gameCreationRate()

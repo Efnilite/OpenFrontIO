@@ -148,7 +148,7 @@ export function buildPreview(
   } else {
     activePlayers =
       countActivePlayers(players) ||
-      (lobby?.numClients ?? lobby?.clients?.length ?? 0);
+      (lobby?.numClients ?? lobby?.clients?.all.length ?? 0);
   }
   const map = lobby?.gameConfig?.gameMap ?? config.gameMap;
   let mode = lobby?.gameConfig?.gameMode ?? config.gameMode ?? GameMode.FFA;
@@ -227,7 +227,7 @@ export function buildPreview(
       const sections: string[] = [];
 
       // Show host
-      const hostClient = lobby.clients?.[0];
+      const hostClient = lobby.clients?.owner;
       if (hostClient?.username) {
         sections.push(`Host: ${hostClient.username}`);
       }

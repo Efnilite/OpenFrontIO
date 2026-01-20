@@ -147,7 +147,7 @@ export const GameInfoSchema = z.object({
 
 export interface GameInfo {
   gameID: GameID;
-  clients?: ClientInfo[];
+  clients?: Clients;
   numClients?: number;
   msUntilStart?: number;
   gameConfig?: GameConfig;
@@ -156,6 +156,13 @@ export interface ClientInfo {
   clientID: ClientID;
   username: string;
 }
+// Stores game owner and all players in the lobby (including owner).
+export interface Clients {
+  // Undefined for server-hosted games
+  owner?: ClientInfo;
+  all: ClientInfo[];
+}
+
 export enum LogSeverity {
   Debug = "DEBUG",
   Info = "INFO",

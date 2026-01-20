@@ -1105,7 +1105,7 @@ export class HostLobbyModal extends BaseModal {
     })
       .then((response) => response.json())
       .then((data: GameInfo) => {
-        this.clients = data.clients ?? [];
+        this.clients = data.clients?.all ?? [];
       });
   }
 

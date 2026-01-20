@@ -504,8 +504,8 @@ export class JoinPrivateLobbyModal extends BaseModal {
     })
       .then((response) => response.json())
       .then((data: GameInfo) => {
-        this.lobbyCreatorClientID = data.clients?.[0]?.clientID ?? null;
-        this.players = data.clients ?? [];
+        this.lobbyCreatorClientID = data.clients?.owner?.clientID ?? null;
+        this.players = data.clients?.all ?? [];
         if (data.gameConfig) {
           const mapChanged =
             this.gameConfig?.gameMap !== data.gameConfig.gameMap;
