@@ -89,6 +89,7 @@ export type UpdateGameConfigIntent = z.infer<
 
 export type Turn = z.infer<typeof TurnSchema>;
 export type GameConfig = z.infer<typeof GameConfigSchema>;
+export type LobbySettings = z.infer<typeof LobbySettingsSchema>;
 
 export type ClientMessage =
   | ClientSendWinnerMessage
@@ -152,15 +153,15 @@ export interface GameInfo {
   msUntilStart?: number;
   gameConfig?: GameConfig;
 }
-export interface ClientInfo {
-  clientID: ClientID;
-  username: string;
-}
 // Stores game owner and all players in the lobby (including owner).
 export interface Clients {
   // Undefined for server-hosted games
-  owner?: ClientInfo;
+  owner?: ClientID;
   all: ClientInfo[];
+}
+export interface ClientInfo {
+  clientID: ClientID;
+  username: string;
 }
 
 export enum LogSeverity {
@@ -214,6 +215,33 @@ export const GameConfigSchema = z.object({
   playerTeams: TeamCountConfigSchema.optional(),
   goldMultiplier: z.number().min(0.1).max(1000).optional(),
   startingGold: z.number().int().min(0).max(1000000000).optional(),
+});
+
+export const LobbySettingsSchema = z.object({
+  selectedMap: z.enum(GameMapType),
+  selectedDifficulty: z.enum(Difficulty),
+  disableNations: z.boolean(),
+  gameMode: z.enum(GameMode),
+  teamCount: TeamCountConfigSchema,
+  bots: z.number().int().min(0).max(400),
+  spawnImmunity: z.boolean(),
+  spawnImmunityDurationMinutes: z.number().int().min(0).optional(),
+  infiniteGold: z.boolean(),
+  donateGold: z.boolean(),
+  infiniteTroops: z.boolean(),
+  donateTroops: z.boolean(),
+  maxTimer: z.boolean(),
+  maxTimerValue: z.number().int().min(1).max(120).optional(),
+  instantBuild: z.boolean(),
+  randomSpawn: z.boolean(),
+  compactMap: z.boolean(),
+  goldMultiplier: z.boolean(),
+  goldMultiplierValue: z.number().min(0.1).max(1000).optional(),
+  startingGold: z.boolean(),
+  startingGoldValue: z.number().int().min(0).max(1000000000).optional(),
+  useRandomMap: z.boolean(),
+  disabledUnits: z.enum(UnitType).array(),
+  nationCount: z.number().int().min(1).max(100),
 });
 
 export const TeamSchema = z.string();
