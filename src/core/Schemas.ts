@@ -434,6 +434,11 @@ export const UpdateGameConfigIntentSchema = BaseIntentSchema.extend({
   config: GameConfigSchema.partial(),
 });
 
+export const UpdateLobbySettingsIntentSchema = BaseIntentSchema.extend({
+  type: z.literal("update_lobby_settings"),
+  config: LobbySettingsSchema,
+});
+
 const IntentSchema = z.discriminatedUnion("type", [
   AttackIntentSchema,
   CancelAttackIntentSchema,
@@ -459,6 +464,7 @@ const IntentSchema = z.discriminatedUnion("type", [
   KickPlayerIntentSchema,
   TogglePauseIntentSchema,
   UpdateGameConfigIntentSchema,
+  LobbySettingsSchema,
 ]);
 
 //

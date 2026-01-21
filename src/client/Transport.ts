@@ -21,6 +21,7 @@ import {
   ClientSendWinnerMessage,
   GameConfig,
   Intent,
+  LobbySettings,
   ServerMessage,
   ServerMessageSchema,
   Winner,
@@ -176,6 +177,10 @@ export class SendKickPlayerIntentEvent implements GameEvent {
 
 export class SendUpdateGameConfigIntentEvent implements GameEvent {
   constructor(public readonly config: Partial<GameConfig>) {}
+}
+
+export class SendUpdateLobbySettingsIntentEvent implements GameEvent {
+  constructor(public readonly settings: LobbySettings) {}
 }
 
 export class Transport {

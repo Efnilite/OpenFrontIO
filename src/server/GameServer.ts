@@ -14,6 +14,7 @@ import {
   GameStartInfo,
   GameStartInfoSchema,
   Intent,
+  LobbySettings,
   PlayerRecord,
   ServerDesyncSchema,
   ServerErrorMessage,
@@ -40,7 +41,6 @@ export class GameServer {
 
   private turns: Turn[] = [];
   private intents: Intent[] = [];
-  private owner: ClientID | null = null;
   public activeClients: Client[] = [];
   private allClients: Map<ClientID, Client> = new Map();
   private clientsDisconnectedStatus: Map<ClientID, boolean> = new Map();
@@ -74,6 +74,8 @@ export class GameServer {
 
   public desyncCount = 0;
 
+  private lobbySettings: LobbySettings;
+
   constructor(
     public readonly id: string,
     readonly log_: Logger,
@@ -83,6 +85,10 @@ export class GameServer {
     private lobbyCreatorID?: string,
   ) {
     this.log = log_.child({ gameID: id });
+  }
+
+  public updateLobbySettings(settings: LobbySettings): void {
+    this.lobbySettings = settings;
   }
 
   public updateGameConfig(gameConfig: Partial<GameConfig>): void {
@@ -407,6 +413,58 @@ export class GameServer {
                 this.updateGameConfig(clientMsg.intent.config);
                 return;
               }
+              case "update_lobby_settings": {
+                // Only lobby creator can update config
+                if (client.clientID !== this.lobbyCreatorID) {
+                  this.log.warn(
+                    `Only lobby creator can update lobby settings`,
+                    {
+                      clientID: client.clientID,
+                      creatorID: this.lobbyCreatorID,
+                      gameID: this.id,
+                    },
+                  );
+                  return;
+                }
+
+                if (this.isPublic()) {
+                  this.log.warn(`Cannot update public game via WebSocket`, {
+                    gameID: this.id,
+                    clientID: client.clientID,
+                  });
+                  return;
+                }
+
+                if (this.hasStarted()) {
+                  this.log.warn(
+                    `Cannot update game config after it has started`,
+                    {
+                      gameID: this.id,
+                      clientID: client.clientID,
+                    },
+                  );
+                  return;
+                }
+
+                if (clientMsg.intent.settings.gameType === GameType.Public) {
+                  this.log.warn(`Cannot update game to public via WebSocket`, {
+                    gameID: this.id,
+                    clientID: client.clientID,
+                  });
+                  return;
+                }
+
+                this.log.info(
+                  `Lobby creator updated lobby settings via WebSocket`,
+                  {
+                    creatorID: client.clientID,
+                    gameID: this.id,
+                  },
+                );
+
+                this.updateLobbySettings(clientMsg.intent.settings);
+                return;
+              }
               case "toggle_pause": {
                 // Only lobby creator can pause/resume
                 if (client.clientID !== this.lobbyCreatorID) {
@@ -483,6 +541,13 @@ export class GameServer {
       this.activeClients = this.activeClients.filter(
         (c) => c.clientID !== client.clientID,
       );
+
+      if (
+        this.lobbyCreatorID === client.clientID &&
+        this.activeClients.length > 0
+      ) {
+        this.lobbyCreatorID = this.activeClients[0].clientID;
+      }
     });
     client.ws.on("error", (error: Error) => {
       if ((error as any).code === "WS_ERR_UNEXPECTED_RSV_1") {
@@ -759,8 +824,7 @@ export class GameServer {
     return {
       gameID: this.id,
       clients: {
-        owner:
-          this.owner !== null ? this.allClients.get(this.owner) : undefined,
+        owner: this.lobbyCreatorID,
         all: this.activeClients.map((c) => ({
           username: c.username,
           clientID: c.clientID,

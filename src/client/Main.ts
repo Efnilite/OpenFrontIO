@@ -40,6 +40,7 @@ import { TokenLoginModal } from "./TokenLoginModal";
 import {
   SendKickPlayerIntentEvent,
   SendUpdateGameConfigIntentEvent,
+  SendUpdateLobbySettingsIntentEvent,
 } from "./Transport";
 import { UserSettingModal } from "./UserSettingModal";
 import "./UsernameInput";
@@ -295,6 +296,10 @@ class Client {
     document.addEventListener(
       "update-game-config",
       this.handleUpdateGameConfig.bind(this),
+    );
+    document.addEventListener(
+      "update-lobby-settings",
+      this.handleUpdateLobbySettings.bind(this),
     );
 
     const spModal = document.querySelector(
@@ -923,6 +928,15 @@ class Client {
     // Forward to eventBus if available
     if (this.eventBus) {
       this.eventBus.emit(new SendUpdateGameConfigIntentEvent(config));
+    }
+  }
+
+  private handleUpdateLobbySettings(event: CustomEvent) {
+    const { settings } = event.detail;
+
+    // Forward to eventBus if available
+    if (this.eventBus) {
+      this.eventBus.emit(new SendUpdateLobbySettingsIntentEvent(settings));
     }
   }
 
