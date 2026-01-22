@@ -12,6 +12,7 @@ import { generateID } from "../core/Util";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import { GameMapSize, GameMode } from "../core/game/Game";
 import { getApiBase } from "./Api";
+import { setHostLobbyTransfer } from "./HostLobbyModal";
 import { JoinLobbyEvent } from "./Main";
 import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import { BaseModal } from "./components/BaseModal";
@@ -34,6 +35,7 @@ export class JoinPrivateLobbyModal extends BaseModal {
   private mapLoader = terrainMapFileLoader;
 
   private leaveLobbyOnClose = true;
+  private clientId: string = generateID();
 
   updated(changedProperties: Map<string | number | symbol, unknown>) {
     super.updated(changedProperties);
@@ -426,7 +428,7 @@ export class JoinPrivateLobbyModal extends BaseModal {
         new CustomEvent("join-lobby", {
           detail: {
             gameID: lobbyId,
-            clientID: generateID(),
+            clientID: this.clientId,
           } as JoinLobbyEvent,
           bubbles: true,
           composed: true,
@@ -482,7 +484,7 @@ export class JoinPrivateLobbyModal extends BaseModal {
         detail: {
           gameID: lobbyId,
           gameRecord: parsed.data,
-          clientID: generateID(),
+          clientID: this.clientId,
         } as JoinLobbyEvent,
         bubbles: true,
         composed: true,
@@ -504,7 +506,43 @@ export class JoinPrivateLobbyModal extends BaseModal {
     })
       .then((response) => response.json())
       .then((data: GameInfo) => {
-        this.lobbyCreatorClientID = data.clients?.owner?.clientID ?? null;
+        this.lobbyCreatorClientID = data.clients?.owner ?? null;
+
+        // close join and open host on owner transfer
+        if (this.lobbyCreatorClientID === this.clientId) {
+          this.unregisterEscapeHandler();
+          this.onClose();
+          if (this.gameConfig) {
+            setHostLobbyTransfer({
+              bots: this.gameConfig.bots,
+              selectedMap: this.gameConfig.gameMap,
+              selectedDifficulty: this.gameConfig.difficulty,
+              disableNations: this.gameConfig.disableNations,
+              gameMode: this.gameConfig.gameMode,
+              teamCount: this.gameConfig.playerTeams,
+              spawnImmunity: false,
+              spawnImmunityDurationMinutes: undefined,
+              infiniteGold: false,
+              donateGold: false,
+              infiniteTroops: false,
+              donateTroops: false,
+              maxTimer: false,
+              maxTimerValue: undefined,
+              instantBuild: false,
+              randomSpawn: false,
+              compactMap: false,
+              goldMultiplier: false,
+              goldMultiplierValue: undefined,
+              startingGold: false,
+              startingGoldValue: undefined,
+              useRandomMap: false,
+              disabledUnits: [],
+              nationCount: 0,
+            });
+          }
+          window.showPage?.("page-host-lobby");
+        }
+
         this.players = data.clients?.all ?? [];
         if (data.gameConfig) {
           const mapChanged =

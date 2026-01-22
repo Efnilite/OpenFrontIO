@@ -1,5 +1,6 @@
 import { TemplateResult, html } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import { DEFAULT_LOBBY_SETTINGS } from "src/core/game/LobbySettings";
 import { translateText } from "../client/Utils";
 import { getServerConfigFromClient } from "../core/configuration/ConfigLoader";
 import {
@@ -18,6 +19,7 @@ import {
   ClientInfo,
   GameConfig,
   GameInfo,
+  LobbySettings,
   TeamCountConfig,
   isValidGameID,
 } from "../core/Schemas";
@@ -39,41 +41,31 @@ import {
 } from "./utilities/RenderToggleInputCard";
 import { renderUnitTypeOptions } from "./utilities/RenderUnitTypeOptions";
 import randomMap from "/images/RandomMap.webp?url";
+
+// transfer from JoinPrivateLobbyModal
+let transfer: LobbySettings | undefined;
+
+export function setHostLobbyTransfer(state: LobbySettings) {
+  transfer = state;
+}
+
 @customElement("host-lobby-modal")
 export class HostLobbyModal extends BaseModal {
-  @state() private selectedMap: GameMapType = GameMapType.World;
-  @state() private selectedDifficulty: Difficulty = Difficulty.Easy;
-  @state() private disableNations = false;
-  @state() private gameMode: GameMode = GameMode.FFA;
-  @state() private teamCount: TeamCountConfig = 2;
-
   constructor() {
     super();
     this.id = "page-host-lobby";
+    if (transfer) {
+      this.state = transfer;
+      transfer = undefined;
+    }
   }
-  @state() private bots: number = 400;
-  @state() private spawnImmunity: boolean = false;
-  @state() private spawnImmunityDurationMinutes: number | undefined = undefined;
-  @state() private infiniteGold: boolean = false;
-  @state() private donateGold: boolean = false;
-  @state() private infiniteTroops: boolean = false;
-  @state() private donateTroops: boolean = false;
-  @state() private maxTimer: boolean = false;
-  @state() private maxTimerValue: number | undefined = undefined;
-  @state() private instantBuild: boolean = false;
-  @state() private randomSpawn: boolean = false;
-  @state() private compactMap: boolean = false;
-  @state() private goldMultiplier: boolean = false;
-  @state() private goldMultiplierValue: number | undefined = undefined;
-  @state() private startingGold: boolean = false;
-  @state() private startingGoldValue: number | undefined = undefined;
-  @state() private lobbyId = "";
-  @state() private lobbyUrlSuffix = "";
+
+  @state() private state: LobbySettings = DEFAULT_LOBBY_SETTINGS;
+
+  @state() private lobbyId: string = "";
+  @state() private lobbyUrlSuffix: string = "";
   @state() private clients: ClientInfo[] = [];
-  @state() private useRandomMap: boolean = false;
-  @state() private disabledUnits: UnitType[] = [];
   @state() private lobbyCreatorClientID: string = "";
-  @state() private nationCount: number = 0;
 
   private playersInterval: NodeJS.Timeout | null = null;
   // Add a new timer for debouncing bot changes
@@ -132,31 +124,31 @@ export class HostLobbyModal extends BaseModal {
 
   render() {
     const maxTimerHandlers = this.createToggleHandlers(
-      () => this.maxTimer,
-      (val) => (this.maxTimer = val),
-      () => this.maxTimerValue,
-      (val) => (this.maxTimerValue = val),
+      () => this.state.maxTimer,
+      (val) => (this.state.maxTimer = val),
+      () => this.state.maxTimerValue,
+      (val) => (this.state.maxTimerValue = val),
       30,
     );
     const spawnImmunityHandlers = this.createToggleHandlers(
-      () => this.spawnImmunity,
-      (val) => (this.spawnImmunity = val),
-      () => this.spawnImmunityDurationMinutes,
-      (val) => (this.spawnImmunityDurationMinutes = val),
+      () => this.state.spawnImmunity,
+      (val) => (this.state.spawnImmunity = val),
+      () => this.state.spawnImmunityDurationMinutes,
+      (val) => (this.state.spawnImmunityDurationMinutes = val),
       5,
     );
     const goldMultiplierHandlers = this.createToggleHandlers(
-      () => this.goldMultiplier,
-      (val) => (this.goldMultiplier = val),
-      () => this.goldMultiplierValue,
-      (val) => (this.goldMultiplierValue = val),
+      () => this.state.goldMultiplier,
+      (val) => (this.state.goldMultiplier = val),
+      () => this.state.goldMultiplierValue,
+      (val) => (this.state.goldMultiplierValue = val),
       2,
     );
     const startingGoldHandlers = this.createToggleHandlers(
-      () => this.startingGold,
-      (val) => (this.startingGold = val),
-      () => this.startingGoldValue,
-      (val) => (this.startingGoldValue = val),
+      () => this.state.startingGold,
+      (val) => (this.state.startingGold = val),
+      () => this.state.startingGoldValue,
+      (val) => (this.state.startingGoldValue = val),
       5000000,
     );
 
@@ -233,8 +225,8 @@ export class HostLobbyModal extends BaseModal {
                             >
                               <map-display
                                 .mapKey=${mapKey}
-                                .selected=${!this.useRandomMap &&
-                                this.selectedMap === mapValue}
+                                .selected=${!this.state.useRandomMap &&
+                                this.state.selectedMap === mapValue}
                                 .translation=${translateText(
                                   `map.${mapKey?.toLowerCase()}`,
                                 )}
@@ -258,7 +250,7 @@ export class HostLobbyModal extends BaseModal {
                   >
                     <button
                       class="relative group rounded-xl border transition-all duration-200 overflow-hidden flex flex-col items-stretch ${this
-                        .useRandomMap
+                        .state.useRandomMap
                         ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
                         : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}"
                       @click=${this.handleSelectRandomMap}
@@ -317,8 +309,8 @@ export class HostLobbyModal extends BaseModal {
                 ${Object.entries(Difficulty)
                   .filter(([key]) => isNaN(Number(key)))
                   .map(([key, value]) => {
-                    const isSelected = this.selectedDifficulty === value;
-                    const isDisabled = this.disableNations;
+                    const isSelected = this.state.selectedDifficulty === value;
+                    const isDisabled = this.state.disableNations;
                     return html`
                       <button
                         ?disabled=${isDisabled}
@@ -374,7 +366,7 @@ export class HostLobbyModal extends BaseModal {
               </div>
               <div class="grid grid-cols-2 gap-4">
                 ${[GameMode.FFA, GameMode.Team].map((mode) => {
-                  const isSelected = this.gameMode === mode;
+                  const isSelected = this.state.gameMode === mode;
                   return html`
                     <button
                       class="w-full py-6 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-3 ${isSelected
@@ -395,7 +387,7 @@ export class HostLobbyModal extends BaseModal {
               </div>
             </div>
 
-            ${this.gameMode === GameMode.FFA
+            ${this.state.gameMode === GameMode.FFA
               ? ""
               : html`
                   <!-- Team Count -->
@@ -418,7 +410,7 @@ export class HostLobbyModal extends BaseModal {
                         Duos,
                         HumansVsNations,
                       ].map((o) => {
-                        const isSelected = this.teamCount === o;
+                        const isSelected = this.state.teamCount === o;
                         return html`
                           <button
                             @click=${() => this.handleTeamCountSelection(o)}
@@ -475,7 +467,7 @@ export class HostLobbyModal extends BaseModal {
                 <!-- Bots Slider -->
                 <div
                   class="col-span-2 rounded-xl p-4 flex flex-col justify-center min-h-[100px] border transition-all duration-200 ${this
-                    .bots > 0
+                    .state.bots > 0
                     ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
                     : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 opacity-80"}"
                 >
@@ -483,7 +475,7 @@ export class HostLobbyModal extends BaseModal {
                     min="0"
                     max="400"
                     step="1"
-                    .value=${this.bots}
+                    .value=${this.state.bots}
                     labelKey="host_modal.bots"
                     disabledKey="host_modal.bots_disabled"
                     @value-changed=${this.handleBotsChange}
@@ -491,60 +483,60 @@ export class HostLobbyModal extends BaseModal {
                 </div>
 
                 ${!(
-                  this.gameMode === GameMode.Team &&
-                  this.teamCount === HumansVsNations
+                  this.state.gameMode === GameMode.Team &&
+                  this.state.teamCount === HumansVsNations
                 )
                   ? this.renderOptionToggle(
                       "host_modal.disable_nations",
-                      this.disableNations,
+                      this.state.disableNations,
                       this.handleDisableNationsChange,
                     )
                   : ""}
                 ${this.renderOptionToggle(
                   "host_modal.instant_build",
-                  this.instantBuild,
+                  this.state.instantBuild,
                   this.handleInstantBuildChange,
                 )}
                 ${this.renderOptionToggle(
                   "host_modal.random_spawn",
-                  this.randomSpawn,
+                  this.state.randomSpawn,
                   this.handleRandomSpawnChange,
                 )}
                 ${this.renderOptionToggle(
                   "host_modal.donate_gold",
-                  this.donateGold,
+                  this.state.donateGold,
                   this.handleDonateGoldChange,
                 )}
                 ${this.renderOptionToggle(
                   "host_modal.donate_troops",
-                  this.donateTroops,
+                  this.state.donateTroops,
                   this.handleDonateTroopsChange,
                 )}
                 ${this.renderOptionToggle(
                   "host_modal.infinite_gold",
-                  this.infiniteGold,
+                  this.state.infiniteGold,
                   this.handleInfiniteGoldChange,
                 )}
                 ${this.renderOptionToggle(
                   "host_modal.infinite_troops",
-                  this.infiniteTroops,
+                  this.state.infiniteTroops,
                   this.handleInfiniteTroopsChange,
                 )}
                 ${this.renderOptionToggle(
                   "host_modal.compact_map",
-                  this.compactMap,
+                  this.state.compactMap,
                   this.handleCompactMapChange,
                 )}
 
                 <!-- Max Timer -->
                 ${renderToggleInputCard({
                   labelKey: "host_modal.max_timer",
-                  checked: this.maxTimer,
+                  checked: this.state.maxTimer,
                   onClick: maxTimerHandlers.click,
                   input: renderToggleInputCardInput({
                     min: 0,
                     max: 120,
-                    value: this.maxTimerValue ?? 0,
+                    value: this.state.maxTimerValue ?? 0,
                     ariaLabel: translateText("host_modal.max_timer"),
                     placeholder: translateText("host_modal.mins_placeholder"),
                     onInput: this.handleMaxTimerValueChanges,
@@ -555,13 +547,13 @@ export class HostLobbyModal extends BaseModal {
                 <!-- Spawn Immunity -->
                 ${renderToggleInputCard({
                   labelKey: "host_modal.player_immunity_duration",
-                  checked: this.spawnImmunity,
+                  checked: this.state.spawnImmunity,
                   onClick: spawnImmunityHandlers.click,
                   input: renderToggleInputCardInput({
                     min: 0,
                     max: 120,
                     step: 1,
-                    value: this.spawnImmunityDurationMinutes ?? 0,
+                    value: this.state.spawnImmunityDurationMinutes ?? 0,
                     ariaLabel: translateText(
                       "host_modal.player_immunity_duration",
                     ),
@@ -574,14 +566,14 @@ export class HostLobbyModal extends BaseModal {
                 <!-- Gold Multiplier -->
                 ${renderToggleInputCard({
                   labelKey: "single_modal.gold_multiplier",
-                  checked: this.goldMultiplier,
+                  checked: this.state.goldMultiplier,
                   onClick: goldMultiplierHandlers.click,
                   input: renderToggleInputCardInput({
                     id: "gold-multiplier-value",
                     min: 0.1,
                     max: 1000,
                     step: "any",
-                    value: this.goldMultiplierValue ?? "",
+                    value: this.state.goldMultiplierValue ?? "",
                     ariaLabel: translateText("single_modal.gold_multiplier"),
                     placeholder: translateText(
                       "single_modal.gold_multiplier_placeholder",
@@ -594,14 +586,14 @@ export class HostLobbyModal extends BaseModal {
                 <!-- Starting Gold -->
                 ${renderToggleInputCard({
                   labelKey: "single_modal.starting_gold",
-                  checked: this.startingGold,
+                  checked: this.state.startingGold,
                   onClick: startingGoldHandlers.click,
                   input: renderToggleInputCardInput({
                     id: "starting-gold-value",
                     min: 0,
                     max: 1000000000,
                     step: 100000,
-                    value: this.startingGoldValue ?? "",
+                    value: this.state.startingGoldValue ?? "",
                     ariaLabel: translateText("single_modal.starting_gold"),
                     placeholder: translateText(
                       "single_modal.starting_gold_placeholder",
@@ -642,7 +634,7 @@ export class HostLobbyModal extends BaseModal {
               </div>
               <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 ${renderUnitTypeOptions({
-                  disabledUnits: this.disabledUnits,
+                  disabledUnits: this.state.disabledUnits,
                   toggleUnit: this.toggleUnit.bind(this),
                 })}
               </div>
@@ -650,13 +642,13 @@ export class HostLobbyModal extends BaseModal {
 
             <!-- Player List -->
             <lobby-player-view
-              .gameMode=${this.gameMode}
+              .gameMode=${this.state.gameMode}
               .clients=${this.clients}
               .lobbyCreatorClientID=${this.lobbyCreatorClientID}
-              .teamCount=${this.teamCount}
-              .nationCount=${this.nationCount}
-              .disableNations=${this.disableNations}
-              .isCompactMap=${this.compactMap}
+              .teamCount=${this.state.teamCount}
+              .nationCount=${this.state.nationCount}
+              .disableNations=${this.state.disableNations}
+              .isCompactMap=${this.state.compactMap}
               .onKickPlayer=${(clientID: string) => this.kickPlayer(clientID)}
             ></lobby-player-view>
           </div>
@@ -792,54 +784,31 @@ export class HostLobbyModal extends BaseModal {
       this.botsUpdateTimer = null;
     }
 
-    // Reset all transient form state to ensure clean slate
-    this.selectedMap = GameMapType.World;
-    this.selectedDifficulty = Difficulty.Easy;
-    this.disableNations = false;
-    this.gameMode = GameMode.FFA;
-    this.teamCount = 2;
-    this.bots = 400;
-    this.spawnImmunity = false;
-    this.spawnImmunityDurationMinutes = undefined;
-    this.infiniteGold = false;
-    this.donateGold = false;
-    this.infiniteTroops = false;
-    this.donateTroops = false;
-    this.maxTimer = false;
-    this.maxTimerValue = undefined;
-    this.instantBuild = false;
-    this.randomSpawn = false;
-    this.compactMap = false;
-    this.useRandomMap = false;
-    this.disabledUnits = [];
+    this.state = DEFAULT_LOBBY_SETTINGS;
+
     this.lobbyId = "";
     this.clients = [];
     this.lobbyCreatorClientID = "";
-    this.nationCount = 0;
-    this.goldMultiplier = false;
-    this.goldMultiplierValue = undefined;
-    this.startingGold = false;
-    this.startingGoldValue = undefined;
 
     this.leaveLobbyOnClose = true;
   }
 
   private async handleSelectRandomMap() {
-    this.useRandomMap = true;
-    this.selectedMap = this.getRandomMap();
+    this.state.useRandomMap = true;
+    this.state.selectedMap = this.getRandomMap();
     await this.loadNationCount();
     this.putGameConfig();
   }
 
   private async handleMapSelection(value: GameMapType) {
-    this.selectedMap = value;
-    this.useRandomMap = false;
+    this.state.selectedMap = value;
+    this.state.useRandomMap = false;
     await this.loadNationCount();
     this.putGameConfig();
   }
 
   private async handleDifficultySelection(value: Difficulty) {
-    this.selectedDifficulty = value;
+    this.state.selectedDifficulty = value;
     this.putGameConfig();
   }
 
@@ -852,7 +821,7 @@ export class HostLobbyModal extends BaseModal {
     }
 
     // Update the display value immediately
-    this.bots = value;
+    this.state.bots = value;
 
     // Clear any existing timer
     if (this.botsUpdateTimer !== null) {
@@ -867,7 +836,7 @@ export class HostLobbyModal extends BaseModal {
   }
 
   private handleInstantBuildChange = (val: boolean) => {
-    this.instantBuild = val;
+    this.state.instantBuild = val;
     this.putGameConfig();
   };
 
@@ -884,7 +853,7 @@ export class HostLobbyModal extends BaseModal {
     if (Number.isNaN(value) || value < 0 || value > 120) {
       return;
     }
-    this.spawnImmunityDurationMinutes = value;
+    this.state.spawnImmunityDurationMinutes = value;
     this.putGameConfig();
   }
 
@@ -899,10 +868,10 @@ export class HostLobbyModal extends BaseModal {
     const value = parseFloat(input.value);
 
     if (isNaN(value) || value < 0.1 || value > 1000) {
-      this.goldMultiplierValue = undefined;
+      this.state.goldMultiplierValue = undefined;
       input.value = "";
     } else {
-      this.goldMultiplierValue = value;
+      this.state.goldMultiplierValue = value;
     }
     this.putGameConfig();
   }
@@ -919,45 +888,45 @@ export class HostLobbyModal extends BaseModal {
     const value = parseInt(input.value);
 
     if (isNaN(value) || value < 0 || value > 1000000000) {
-      this.startingGoldValue = undefined;
+      this.state.startingGoldValue = undefined;
     } else {
-      this.startingGoldValue = value;
+      this.state.startingGoldValue = value;
     }
     this.putGameConfig();
   }
 
   private handleRandomSpawnChange = (val: boolean) => {
-    this.randomSpawn = val;
+    this.state.randomSpawn = val;
     this.putGameConfig();
   };
 
   private handleInfiniteGoldChange = (val: boolean) => {
-    this.infiniteGold = val;
+    this.state.infiniteGold = val;
     this.putGameConfig();
   };
 
   private handleDonateGoldChange = (val: boolean) => {
-    this.donateGold = val;
+    this.state.donateGold = val;
     this.putGameConfig();
   };
 
   private handleInfiniteTroopsChange = (val: boolean) => {
-    this.infiniteTroops = val;
+    this.state.infiniteTroops = val;
     this.putGameConfig();
   };
 
   private handleCompactMapChange = (val: boolean) => {
-    this.compactMap = val;
-    if (val && this.bots === 400) {
-      this.bots = 100;
-    } else if (!val && this.bots === 100) {
-      this.bots = 400;
+    this.state.compactMap = val;
+    if (val && this.state.bots === 400) {
+      this.state.bots = 100;
+    } else if (!val && this.state.bots === 100) {
+      this.state.bots = 400;
     }
     this.putGameConfig();
   };
 
   private handleDonateTroopsChange = (val: boolean) => {
-    this.donateTroops = val;
+    this.state.donateTroops = val;
     this.putGameConfig();
   };
 
@@ -976,36 +945,36 @@ export class HostLobbyModal extends BaseModal {
     if (isNaN(value) || value < 0 || value > 120) {
       return;
     }
-    this.maxTimerValue = value;
+    this.state.maxTimerValue = value;
     this.putGameConfig();
   }
 
   private handleDisableNationsChange = async (val: boolean) => {
-    this.disableNations = val;
-    console.log(`updating disable nations to ${this.disableNations}`);
+    this.state.disableNations = val;
+    console.log(`updating disable nations to ${this.state.disableNations}`);
     this.putGameConfig();
   };
 
   private async handleGameModeSelection(value: GameMode) {
-    this.gameMode = value;
-    if (this.gameMode === GameMode.Team) {
-      this.donateGold = true;
-      this.donateTroops = true;
+    this.state.gameMode = value;
+    if (this.state.gameMode === GameMode.Team) {
+      this.state.donateGold = true;
+      this.state.donateTroops = true;
     } else {
-      this.donateGold = false;
-      this.donateTroops = false;
+      this.state.donateGold = false;
+      this.state.donateTroops = false;
     }
     this.putGameConfig();
   }
 
   private async handleTeamCountSelection(value: TeamCountConfig) {
-    this.teamCount = value;
+    this.state.teamCount = value;
     this.putGameConfig();
   }
 
   private async putGameConfig() {
-    const spawnImmunityTicks = this.spawnImmunityDurationMinutes
-      ? this.spawnImmunityDurationMinutes * 60 * 10
+    const spawnImmunityTicks = this.state.spawnImmunityDurationMinutes
+      ? this.state.spawnImmunityDurationMinutes * 60 * 10
       : 0;
     const url = await this.constructUrl();
     this.updateHistory(url);
@@ -1013,52 +982,64 @@ export class HostLobbyModal extends BaseModal {
       new CustomEvent("update-game-config", {
         detail: {
           config: {
-            gameMap: this.selectedMap,
-            gameMapSize: this.compactMap
+            gameMap: this.state.selectedMap,
+            gameMapSize: this.state.compactMap
               ? GameMapSize.Compact
               : GameMapSize.Normal,
-            difficulty: this.selectedDifficulty,
-            bots: this.bots,
-            infiniteGold: this.infiniteGold,
-            donateGold: this.donateGold,
-            infiniteTroops: this.infiniteTroops,
-            donateTroops: this.donateTroops,
-            instantBuild: this.instantBuild,
-            randomSpawn: this.randomSpawn,
-            gameMode: this.gameMode,
-            disabledUnits: this.disabledUnits,
-            spawnImmunityDuration: this.spawnImmunity
+            difficulty: this.state.selectedDifficulty,
+            bots: this.state.bots,
+            infiniteGold: this.state.infiniteGold,
+            donateGold: this.state.donateGold,
+            infiniteTroops: this.state.infiniteTroops,
+            donateTroops: this.state.donateTroops,
+            instantBuild: this.state.instantBuild,
+            randomSpawn: this.state.randomSpawn,
+            gameMode: this.state.gameMode,
+            disabledUnits: this.state.disabledUnits,
+            spawnImmunityDuration: this.state.spawnImmunity
               ? spawnImmunityTicks
               : undefined,
-            playerTeams: this.teamCount,
-            ...(this.gameMode === GameMode.Team &&
-            this.teamCount === HumansVsNations
+            playerTeams: this.state.teamCount,
+            ...(this.state.gameMode === GameMode.Team &&
+            this.state.teamCount === HumansVsNations
               ? {
                   disableNations: false,
                 }
               : {
-                  disableNations: this.disableNations,
+                  disableNations: this.state.disableNations,
                 }),
             maxTimerValue:
-              this.maxTimer === true ? this.maxTimerValue : undefined,
+              this.state.maxTimer === true
+                ? this.state.maxTimerValue
+                : undefined,
             goldMultiplier:
-              this.goldMultiplier === true
-                ? this.goldMultiplierValue
+              this.state.goldMultiplier === true
+                ? this.state.goldMultiplierValue
                 : undefined,
             startingGold:
-              this.startingGold === true ? this.startingGoldValue : undefined,
+              this.state.startingGold === true
+                ? this.state.startingGoldValue
+                : undefined,
           } satisfies Partial<GameConfig>,
         },
         bubbles: true,
         composed: true,
       }),
     );
+
+    this.dispatchEvent(
+      new CustomEvent("update-lobby-settings", {
+        detail: {
+          settings: this.state,
+        },
+      }),
+    );
   }
 
   private toggleUnit(unit: UnitType, checked: boolean): void {
-    this.disabledUnits = checked
-      ? [...this.disabledUnits, unit]
-      : this.disabledUnits.filter((u) => u !== unit);
+    this.state.disabledUnits = checked
+      ? [...this.state.disabledUnits, unit]
+      : this.state.disabledUnits.filter((u) => u !== unit);
 
     this.putGameConfig();
   }
@@ -1072,7 +1053,7 @@ export class HostLobbyModal extends BaseModal {
   private async startGame() {
     await this.putGameConfig();
     console.log(
-      `Starting private game with map: ${GameMapType[this.selectedMap as keyof typeof GameMapType]} ${this.useRandomMap ? " (Randomly selected)" : ""}`,
+      `Starting private game with map: ${GameMapType[this.state.selectedMap as keyof typeof GameMapType]} ${this.state.useRandomMap ? " (Randomly selected)" : ""}`,
     );
 
     // If the modal closes as part of starting the game, do not leave the lobby
@@ -1121,19 +1102,19 @@ export class HostLobbyModal extends BaseModal {
   }
 
   private async loadNationCount() {
-    const currentMap = this.selectedMap;
+    const currentMap = this.state.selectedMap;
     try {
       const mapData = this.mapLoader.getMapData(currentMap);
       const manifest = await mapData.manifest();
       // Only update if the map hasn't changed
-      if (this.selectedMap === currentMap) {
-        this.nationCount = manifest.nations.length;
+      if (this.state.selectedMap === currentMap) {
+        this.state.nationCount = manifest.nations.length;
       }
     } catch (error) {
       console.warn("Failed to load nation count", error);
       // Only update if the map hasn't changed
-      if (this.selectedMap === currentMap) {
-        this.nationCount = 0;
+      if (this.state.selectedMap === currentMap) {
+        this.state.nationCount = 0;
       }
     }
   }
