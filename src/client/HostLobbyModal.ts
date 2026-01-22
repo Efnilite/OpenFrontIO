@@ -42,22 +42,12 @@ import {
 import { renderUnitTypeOptions } from "./utilities/RenderUnitTypeOptions";
 import randomMap from "/images/RandomMap.webp?url";
 
-// transfer from JoinPrivateLobbyModal
-let transfer: LobbySettings | undefined;
-
-export function setHostLobbyTransfer(state: LobbySettings) {
-  transfer = state;
-}
-
 @customElement("host-lobby-modal")
 export class HostLobbyModal extends BaseModal {
   constructor() {
     super();
     this.id = "page-host-lobby";
-    if (transfer) {
-      this.state = transfer;
-      transfer = undefined;
-    }
+    this.pollSettings();
   }
 
   @state() private state: LobbySettings = DEFAULT_LOBBY_SETTINGS;
@@ -734,7 +724,7 @@ export class HostLobbyModal extends BaseModal {
       } else {
         valueSetter(undefined);
       }
-      this.putGameConfig();
+      this.putSettings();
       this.requestUpdate();
     };
 
@@ -797,19 +787,19 @@ export class HostLobbyModal extends BaseModal {
     this.state.useRandomMap = true;
     this.state.selectedMap = this.getRandomMap();
     await this.loadNationCount();
-    this.putGameConfig();
+    this.putSettings();
   }
 
   private async handleMapSelection(value: GameMapType) {
     this.state.selectedMap = value;
     this.state.useRandomMap = false;
     await this.loadNationCount();
-    this.putGameConfig();
+    this.putSettings();
   }
 
   private async handleDifficultySelection(value: Difficulty) {
     this.state.selectedDifficulty = value;
-    this.putGameConfig();
+    this.putSettings();
   }
 
   // Modified to include debouncing
@@ -830,14 +820,14 @@ export class HostLobbyModal extends BaseModal {
 
     // Set a new timer to call putGameConfig after 300ms of inactivity
     this.botsUpdateTimer = window.setTimeout(() => {
-      this.putGameConfig();
+      this.putSettings();
       this.botsUpdateTimer = null;
     }, 300);
   }
 
   private handleInstantBuildChange = (val: boolean) => {
     this.state.instantBuild = val;
-    this.putGameConfig();
+    this.putSettings();
   };
 
   private handleSpawnImmunityDurationKeyDown(e: KeyboardEvent) {
@@ -854,7 +844,7 @@ export class HostLobbyModal extends BaseModal {
       return;
     }
     this.state.spawnImmunityDurationMinutes = value;
-    this.putGameConfig();
+    this.putSettings();
   }
 
   private handleGoldMultiplierValueKeyDown(e: KeyboardEvent) {
@@ -873,7 +863,7 @@ export class HostLobbyModal extends BaseModal {
     } else {
       this.state.goldMultiplierValue = value;
     }
-    this.putGameConfig();
+    this.putSettings();
   }
 
   private handleStartingGoldValueKeyDown(e: KeyboardEvent) {
@@ -892,27 +882,27 @@ export class HostLobbyModal extends BaseModal {
     } else {
       this.state.startingGoldValue = value;
     }
-    this.putGameConfig();
+    this.putSettings();
   }
 
   private handleRandomSpawnChange = (val: boolean) => {
     this.state.randomSpawn = val;
-    this.putGameConfig();
+    this.putSettings();
   };
 
   private handleInfiniteGoldChange = (val: boolean) => {
     this.state.infiniteGold = val;
-    this.putGameConfig();
+    this.putSettings();
   };
 
   private handleDonateGoldChange = (val: boolean) => {
     this.state.donateGold = val;
-    this.putGameConfig();
+    this.putSettings();
   };
 
   private handleInfiniteTroopsChange = (val: boolean) => {
     this.state.infiniteTroops = val;
-    this.putGameConfig();
+    this.putSettings();
   };
 
   private handleCompactMapChange = (val: boolean) => {
@@ -922,12 +912,12 @@ export class HostLobbyModal extends BaseModal {
     } else if (!val && this.state.bots === 100) {
       this.state.bots = 400;
     }
-    this.putGameConfig();
+    this.putSettings();
   };
 
   private handleDonateTroopsChange = (val: boolean) => {
     this.state.donateTroops = val;
-    this.putGameConfig();
+    this.putSettings();
   };
 
   private handleMaxTimerValueKeyDown(e: KeyboardEvent) {
@@ -946,13 +936,13 @@ export class HostLobbyModal extends BaseModal {
       return;
     }
     this.state.maxTimerValue = value;
-    this.putGameConfig();
+    this.putSettings();
   }
 
   private handleDisableNationsChange = async (val: boolean) => {
     this.state.disableNations = val;
     console.log(`updating disable nations to ${this.state.disableNations}`);
-    this.putGameConfig();
+    this.putSettings();
   };
 
   private async handleGameModeSelection(value: GameMode) {
@@ -964,15 +954,15 @@ export class HostLobbyModal extends BaseModal {
       this.state.donateGold = false;
       this.state.donateTroops = false;
     }
-    this.putGameConfig();
+    this.putSettings();
   }
 
   private async handleTeamCountSelection(value: TeamCountConfig) {
     this.state.teamCount = value;
-    this.putGameConfig();
+    this.putSettings();
   }
 
-  private async putGameConfig() {
+  private async putSettings() {
     const spawnImmunityTicks = this.state.spawnImmunityDurationMinutes
       ? this.state.spawnImmunityDurationMinutes * 60 * 10
       : 0;
@@ -1041,7 +1031,7 @@ export class HostLobbyModal extends BaseModal {
       ? [...this.state.disabledUnits, unit]
       : this.state.disabledUnits.filter((u) => u !== unit);
 
-    this.putGameConfig();
+    this.putSettings();
   }
 
   private getRandomMap(): GameMapType {
@@ -1051,7 +1041,7 @@ export class HostLobbyModal extends BaseModal {
   }
 
   private async startGame() {
-    await this.putGameConfig();
+    await this.putSettings();
     console.log(
       `Starting private game with map: ${GameMapType[this.state.selectedMap as keyof typeof GameMapType]} ${this.state.useRandomMap ? " (Randomly selected)" : ""}`,
     );
@@ -1074,6 +1064,23 @@ export class HostLobbyModal extends BaseModal {
       this.leaveLobbyOnClose = true;
     }
     return response;
+  }
+
+  private async pollSettings() {
+    const config = await getServerConfigFromClient();
+    fetch(
+      `/${config.workerPath(this.lobbyId)}/api/game/${this.lobbyId}/settings`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    )
+      .then((response) => response.json())
+      .then((data: LobbySettings) => {
+        this.state = data;
+      });
   }
 
   private async pollPlayers() {
