@@ -74,7 +74,7 @@ export class GameServer {
 
   public desyncCount = 0;
 
-  private lobbySettings: LobbySettings;
+  private settings: LobbySettings;
 
   constructor(
     public readonly id: string,
@@ -88,7 +88,11 @@ export class GameServer {
   }
 
   public updateLobbySettings(settings: LobbySettings): void {
-    this.lobbySettings = settings;
+    this.settings = settings;
+  }
+
+  public lobbySettings(): LobbySettings {
+    return this.settings;
   }
 
   public updateGameConfig(gameConfig: Partial<GameConfig>): void {
