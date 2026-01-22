@@ -272,6 +272,10 @@ export class Transport {
     this.eventBus.on(SendUpdateGameConfigIntentEvent, (e) =>
       this.onSendUpdateGameConfigIntent(e),
     );
+
+    this.eventBus.on(SendUpdateLobbySettingsIntentEvent, (e) =>
+      this.onSendUpdateLobbySettingsIntent(e),
+    );
   }
 
   private startPing() {
@@ -674,6 +678,16 @@ export class Transport {
       type: "update_game_config",
       clientID: this.lobbyConfig.clientID,
       config: event.config,
+    });
+  }
+
+  private onSendUpdateLobbySettingsIntent(
+    event: SendUpdateLobbySettingsIntentEvent,
+  ) {
+    this.sendIntent({
+      type: "update_lobby_settings",
+      clientID: this.lobbyConfig.clientID,
+      config: event.settings,
     });
   }
 

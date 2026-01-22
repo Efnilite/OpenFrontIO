@@ -1017,6 +1017,7 @@ export class HostLobbyModal extends BaseModal {
       }),
     );
 
+    console.log("Sending lobby update");
     this.dispatchEvent(
       new CustomEvent("update-lobby-settings", {
         detail: {
