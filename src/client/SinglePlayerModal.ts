@@ -24,6 +24,7 @@ import "./components/baseComponents/Modal";
 import { BaseModal } from "./components/BaseModal";
 import "./components/Difficulties";
 import "./components/FluentSlider";
+import "./components/lobby/NationDifficulty";
 import "./components/Maps";
 import { modalHeader } from "./components/ui/ModalHeader";
 import { fetchCosmetics } from "./Cosmetics";
@@ -249,10 +250,11 @@ export class SinglePlayerModal extends BaseModal {
                     class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
                   >
                     <button
-                      class="relative group rounded-xl border transition-all duration-200 overflow-hidden flex flex-col items-stretch ${this
-                        .useRandomMap
-                        ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
-                        : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}"
+                      class="relative group rounded-xl border transition-all duration-200 overflow-hidden flex flex-col items-stretch ${
+                        this.useRandomMap
+                          ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+                          : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"
+                      }"
                       @click=${this.handleSelectRandomMap}
                     >
                       <div
@@ -278,36 +280,9 @@ export class SinglePlayerModal extends BaseModal {
             </div>
 
             <!-- Difficulty Selection -->
-            <div class="space-y-6">
-              <div
-                class="flex items-center gap-4 pb-2 border-b border-white/10"
-              >
-                <div
-                  class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="w-5 h-5"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M12.97 3.97a.75.75 0 011.06 0l7.5 7.5a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 11-1.06-1.06l6.22-6.22H3a.75.75 0 010-1.5h16.19l-6.22-6.22a.75.75 0 010-1.06z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <h3
-                  class="text-lg font-bold text-white uppercase tracking-wider"
-                >
-                  ${translateText("difficulty.difficulty")}
-                </h3>
-              </div>
-
               <lobby-nation-difficulty
                 selected=${this.selectedDifficulty}
-                onSelect=${this.handleDifficultySelection}
+                onSelect=${(d: Difficulty) => this.handleDifficultySelection(d)}
               ></lobby-nation-difficulty>
 
               <!-- Game Mode Selection -->
@@ -362,54 +337,56 @@ export class SinglePlayerModal extends BaseModal {
                 </div>
               </div>
 
-              ${this.gameMode === GameMode.FFA
-                ? ""
-                : html`
-                    <!-- Team Count Selection -->
-                    <div class="space-y-6">
-                      <div
-                        class="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 pl-2"
-                      >
-                        ${translateText("host_modal.team_count")}
-                      </div>
-                      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                        ${[
-                          2,
-                          3,
-                          4,
-                          5,
-                          6,
-                          7,
-                          Quads,
-                          Trios,
-                          Duos,
-                          HumansVsNations,
-                        ].map(
-                          (o) => html`
-                            <button
-                              class="w-full px-4 py-3 rounded-xl border transition-all duration-200 flex items-center justify-center ${this
-                                .teamCount === o
-                                ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}"
-                              @click=${() => this.handleTeamCountSelection(o)}
-                            >
-                              <div
-                                class="text-xs font-bold text-white uppercase tracking-wider text-center break-words hyphens-auto"
+              ${
+                this.gameMode === GameMode.FFA
+                  ? ""
+                  : html`
+                      <!-- Team Count Selection -->
+                      <div class="space-y-6">
+                        <div
+                          class="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 pl-2"
+                        >
+                          ${translateText("host_modal.team_count")}
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                          ${[
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7,
+                            Quads,
+                            Trios,
+                            Duos,
+                            HumansVsNations,
+                          ].map(
+                            (o) => html`
+                              <button
+                                class="w-full px-4 py-3 rounded-xl border transition-all duration-200 flex items-center justify-center ${this
+                                  .teamCount === o
+                                  ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                                  : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}"
+                                @click=${() => this.handleTeamCountSelection(o)}
                               >
-                                ${typeof o === "string"
-                                  ? o === HumansVsNations
-                                    ? translateText("public_lobby.teams_hvn")
-                                    : translateText(`host_modal.teams_${o}`)
-                                  : translateText(`public_lobby.teams`, {
-                                      num: o,
-                                    })}
-                              </div>
-                            </button>
-                          `,
-                        )}
+                                <div
+                                  class="text-xs font-bold text-white uppercase tracking-wider text-center break-words hyphens-auto"
+                                >
+                                  ${typeof o === "string"
+                                    ? o === HumansVsNations
+                                      ? translateText("public_lobby.teams_hvn")
+                                      : translateText(`host_modal.teams_${o}`)
+                                    : translateText(`public_lobby.teams`, {
+                                        num: o,
+                                      })}
+                                </div>
+                              </button>
+                            `,
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  `}
+                    `
+              }
 
               <!-- Game Options -->
               <div class="space-y-6">
@@ -442,10 +419,11 @@ export class SinglePlayerModal extends BaseModal {
                 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <!-- Bot Slider Card -->
                   <div
-                    class="col-span-2 rounded-xl p-4 flex flex-col justify-center min-h-[100px] border transition-all duration-200 ${this
-                      .bots > 0
-                      ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                      : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 opacity-80"}"
+                    class="col-span-2 rounded-xl p-4 flex flex-col justify-center min-h-[100px] border transition-all duration-200 ${
+                      this.bots > 0
+                        ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                        : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 opacity-80"
+                    }"
                   >
                     <fluent-slider
                       min="0"
