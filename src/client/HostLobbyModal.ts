@@ -313,366 +313,340 @@ export class HostLobbyModal extends BaseModal {
                 </h3>
               </div>
 
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                ${Object.entries(Difficulty)
-                  .filter(([key]) => isNaN(Number(key)))
-                  .map(([key, value]) => {
-                    const isSelected = this.selectedDifficulty === value;
-                    const isDisabled = this.disableNations;
+              <lobby-nation-difficulty
+                selected=${this.selectedDifficulty}
+                onSelect=${this.handleDifficultySelection}
+              ></lobby-nation-difficulty>
+
+              <!-- Game Mode -->
+              <div class="space-y-6">
+                <div
+                  class="flex items-center gap-4 pb-2 border-b border-white/10"
+                >
+                  <div
+                    class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      class="w-5 h-5"
+                    >
+                      <path
+                        d="M11.25 4.533A9.707 9.707 0 006 3a9.735 9.735 0 00-3.25.555.75.75 0 00-.5.707v14.25a.75.75 0 001 .707A8.237 8.237 0 016 18.75c1.995 0 3.823.707 5.25 1.886V4.533zM12.75 20.636A8.214 8.214 0 0118 18.75c.966 0 1.89.166 2.75.47a.75.75 0 001-.708V4.262a.75.75 0 00-.5-.707A9.735 9.735 0 0018 3a9.707 9.707 0 00-5.25 1.533v16.103z"
+                      />
+                    </svg>
+                  </div>
+                  <h3
+                    class="text-lg font-bold text-white uppercase tracking-wider"
+                  >
+                    ${translateText("host_modal.mode")}
+                  </h3>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  ${[GameMode.FFA, GameMode.Team].map((mode) => {
+                    const isSelected = this.gameMode === mode;
                     return html`
                       <button
-                        ?disabled=${isDisabled}
-                        @click=${() =>
-                          !isDisabled && this.handleDifficultySelection(value)}
-                        class="relative group rounded-xl border transition-all duration-200 w-full overflow-hidden flex flex-col items-center p-4 gap-3 ${isDisabled
-                          ? "opacity-30 grayscale cursor-not-allowed bg-white/5 border-white/5"
-                          : isSelected
-                            ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                            : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}"
+                        class="w-full py-6 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-3 ${isSelected
+                          ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                          : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}"
+                        @click=${() => this.handleGameModeSelection(mode)}
                       >
-                        <difficulty-display
-                          .difficultyKey=${key}
-                          class="transform scale-125 origin-center ${isDisabled
-                            ? "pointer-events-none"
-                            : ""}"
-                        ></difficulty-display>
-                        <div
-                          class="text-xs font-bold text-white uppercase tracking-wider text-center w-full mt-1 break-words hyphens-auto"
+                        <span
+                          class="text-sm font-bold text-white uppercase tracking-widest break-words hyphens-auto"
                         >
-                          ${translateText(`difficulty.${key.toLowerCase()}`)}
-                        </div>
+                          ${mode === GameMode.FFA
+                            ? translateText("game_mode.ffa")
+                            : translateText("game_mode.teams")}
+                        </span>
                       </button>
                     `;
                   })}
-              </div>
-            </div>
-
-            <!-- Game Mode -->
-            <div class="space-y-6">
-              <div
-                class="flex items-center gap-4 pb-2 border-b border-white/10"
-              >
-                <div
-                  class="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="w-5 h-5"
-                  >
-                    <path
-                      d="M11.25 4.533A9.707 9.707 0 006 3a9.735 9.735 0 00-3.25.555.75.75 0 00-.5.707v14.25a.75.75 0 001 .707A8.237 8.237 0 016 18.75c1.995 0 3.823.707 5.25 1.886V4.533zM12.75 20.636A8.214 8.214 0 0118 18.75c.966 0 1.89.166 2.75.47a.75.75 0 001-.708V4.262a.75.75 0 00-.5-.707A9.735 9.735 0 0018 3a9.707 9.707 0 00-5.25 1.533v16.103z"
-                    />
-                  </svg>
                 </div>
-                <h3
-                  class="text-lg font-bold text-white uppercase tracking-wider"
-                >
-                  ${translateText("host_modal.mode")}
-                </h3>
               </div>
-              <div class="grid grid-cols-2 gap-4">
-                ${[GameMode.FFA, GameMode.Team].map((mode) => {
-                  const isSelected = this.gameMode === mode;
-                  return html`
-                    <button
-                      class="w-full py-6 rounded-xl border transition-all duration-200 flex flex-col items-center justify-center gap-3 ${isSelected
-                        ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                        : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}"
-                      @click=${() => this.handleGameModeSelection(mode)}
-                    >
-                      <span
-                        class="text-sm font-bold text-white uppercase tracking-widest break-words hyphens-auto"
+
+              ${this.gameMode === GameMode.FFA
+                ? ""
+                : html`
+                    <!-- Team Count -->
+                    <div class="space-y-6">
+                      <div
+                        class="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 pl-2"
                       >
-                        ${mode === GameMode.FFA
-                          ? translateText("game_mode.ffa")
-                          : translateText("game_mode.teams")}
-                      </span>
-                    </button>
-                  `;
-                })}
-              </div>
-            </div>
-
-            ${this.gameMode === GameMode.FFA
-              ? ""
-              : html`
-                  <!-- Team Count -->
-                  <div class="space-y-6">
-                    <div
-                      class="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 pl-2"
-                    >
-                      ${translateText("host_modal.team_count")}
-                    </div>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                      ${[
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        Quads,
-                        Trios,
-                        Duos,
-                        HumansVsNations,
-                      ].map((o) => {
-                        const isSelected = this.teamCount === o;
-                        return html`
-                          <button
-                            @click=${() => this.handleTeamCountSelection(o)}
-                            class="w-full px-4 py-3 rounded-xl border transition-all duration-200 flex items-center justify-center ${isSelected
-                              ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                              : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}"
-                          >
-                            <span
-                              class="text-xs font-bold uppercase tracking-wider text-center text-white break-words hyphens-auto"
+                        ${translateText("host_modal.team_count")}
+                      </div>
+                      <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        ${[
+                          2,
+                          3,
+                          4,
+                          5,
+                          6,
+                          7,
+                          Quads,
+                          Trios,
+                          Duos,
+                          HumansVsNations,
+                        ].map((o) => {
+                          const isSelected = this.teamCount === o;
+                          return html`
+                            <button
+                              @click=${() => this.handleTeamCountSelection(o)}
+                              class="w-full px-4 py-3 rounded-xl border transition-all duration-200 flex items-center justify-center ${isSelected
+                                ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                                : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"}"
                             >
-                              ${typeof o === "string"
-                                ? o === HumansVsNations
-                                  ? translateText("public_lobby.teams_hvn")
-                                  : translateText(`host_modal.teams_${o}`)
-                                : translateText("public_lobby.teams", {
-                                    num: o,
-                                  })}
-                            </span>
-                          </button>
-                        `;
-                      })}
+                              <span
+                                class="text-xs font-bold uppercase tracking-wider text-center text-white break-words hyphens-auto"
+                              >
+                                ${typeof o === "string"
+                                  ? o === HumansVsNations
+                                    ? translateText("public_lobby.teams_hvn")
+                                    : translateText(`host_modal.teams_${o}`)
+                                  : translateText("public_lobby.teams", {
+                                      num: o,
+                                    })}
+                              </span>
+                            </button>
+                          `;
+                        })}
+                      </div>
                     </div>
+                  `}
+
+              <!-- Game Options -->
+              <div class="space-y-6">
+                <div
+                  class="flex items-center gap-4 pb-2 border-b border-white/10"
+                >
+                  <div
+                    class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      class="w-5 h-5"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819l-.922 1.597a1.875 1.875 0 00.432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 000 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 00-.432 2.385l.922 1.597a1.875 1.875 0 002.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 002.28-.819l.922-1.597a1.875 1.875 0 00-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 000-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 00-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 00-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 00-1.85-1.567h-1.843zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
                   </div>
-                `}
-
-            <!-- Game Options -->
-            <div class="space-y-6">
-              <div
-                class="flex items-center gap-4 pb-2 border-b border-white/10"
-              >
-                <div
-                  class="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center text-orange-400"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="w-5 h-5"
+                  <h3
+                    class="text-lg font-bold text-white uppercase tracking-wider"
                   >
-                    <path
-                      fill-rule="evenodd"
-                      d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.02.12-.115.26-.297.348a7.493 7.493 0 00-.986.57c-.166.115-.334.126-.45.083L6.3 5.508a1.875 1.875 0 00-2.282.819l-.922 1.597a1.875 1.875 0 00.432 2.385l.84.692c.095.078.17.229.154.43a7.598 7.598 0 000 1.139c.015.2-.059.352-.153.43l-.841.692a1.875 1.875 0 00-.432 2.385l.922 1.597a1.875 1.875 0 002.282.818l1.019-.382c.115-.043.283-.031.45.082.312.214.641.405.985.57.182.088.277.228.297.35l.178 1.071c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-1.072c.02-.12.114-.26.297-.349.344-.165.673-.356.985-.57.167-.114.335-.125.45-.082l1.02.382a1.875 1.875 0 002.28-.819l.922-1.597a1.875 1.875 0 00-.432-2.385l-.84-.692c-.095-.078-.17-.229-.154-.43a7.614 7.614 0 000-1.139c-.016-.2.059-.352.153-.43l.84-.692c.708-.582.891-1.59.433-2.385l-.922-1.597a1.875 1.875 0 00-2.282-.818l-1.02.382c-.114.043-.282.031-.449-.083a7.49 7.49 0 00-.985-.57c-.183-.087-.277-.227-.297-.348l-.179-1.072a1.875 1.875 0 00-1.85-1.567h-1.843zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
+                    ${translateText("host_modal.options_title")}
+                  </h3>
                 </div>
-                <h3
-                  class="text-lg font-bold text-white uppercase tracking-wider"
-                >
-                  ${translateText("host_modal.options_title")}
-                </h3>
-              </div>
-              <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <!-- Bots Slider -->
-                <div
-                  class="col-span-2 rounded-xl p-4 flex flex-col justify-center min-h-[100px] border transition-all duration-200 ${this
-                    .bots > 0
-                    ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
-                    : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 opacity-80"}"
-                >
-                  <fluent-slider
-                    min="0"
-                    max="400"
-                    step="1"
-                    .value=${this.bots}
-                    labelKey="host_modal.bots"
-                    disabledKey="host_modal.bots_disabled"
-                    @value-changed=${this.handleBotsChange}
-                  ></fluent-slider>
-                </div>
-
-                ${!(
-                  this.gameMode === GameMode.Team &&
-                  this.teamCount === HumansVsNations
-                )
-                  ? this.renderOptionToggle(
-                      "host_modal.disable_nations",
-                      this.disableNations,
-                      this.handleDisableNationsChange,
-                    )
-                  : ""}
-                ${this.renderOptionToggle(
-                  "host_modal.instant_build",
-                  this.instantBuild,
-                  this.handleInstantBuildChange,
-                )}
-                ${this.renderOptionToggle(
-                  "host_modal.random_spawn",
-                  this.randomSpawn,
-                  this.handleRandomSpawnChange,
-                )}
-                ${this.renderOptionToggle(
-                  "host_modal.donate_gold",
-                  this.donateGold,
-                  this.handleDonateGoldChange,
-                )}
-                ${this.renderOptionToggle(
-                  "host_modal.donate_troops",
-                  this.donateTroops,
-                  this.handleDonateTroopsChange,
-                )}
-                ${this.renderOptionToggle(
-                  "host_modal.infinite_gold",
-                  this.infiniteGold,
-                  this.handleInfiniteGoldChange,
-                )}
-                ${this.renderOptionToggle(
-                  "host_modal.infinite_troops",
-                  this.infiniteTroops,
-                  this.handleInfiniteTroopsChange,
-                )}
-                ${this.renderOptionToggle(
-                  "host_modal.compact_map",
-                  this.compactMap,
-                  this.handleCompactMapChange,
-                )}
-
-                <!-- Max Timer -->
-                ${renderToggleInputCard({
-                  labelKey: "host_modal.max_timer",
-                  checked: this.maxTimer,
-                  onClick: maxTimerHandlers.click,
-                  input: renderToggleInputCardInput({
-                    min: 0,
-                    max: 120,
-                    value: this.maxTimerValue ?? 0,
-                    ariaLabel: translateText("host_modal.max_timer"),
-                    placeholder: translateText("host_modal.mins_placeholder"),
-                    onInput: this.handleMaxTimerValueChanges,
-                    onKeyDown: this.handleMaxTimerValueKeyDown,
-                  }),
-                })}
-
-                <!-- Spawn Immunity -->
-                ${renderToggleInputCard({
-                  labelKey: "host_modal.player_immunity_duration",
-                  checked: this.spawnImmunity,
-                  onClick: spawnImmunityHandlers.click,
-                  input: renderToggleInputCardInput({
-                    min: 0,
-                    max: 120,
-                    step: 1,
-                    value: this.spawnImmunityDurationMinutes ?? 0,
-                    ariaLabel: translateText(
-                      "host_modal.player_immunity_duration",
-                    ),
-                    placeholder: translateText("host_modal.mins_placeholder"),
-                    onInput: this.handleSpawnImmunityDurationInput,
-                    onKeyDown: this.handleSpawnImmunityDurationKeyDown,
-                  }),
-                })}
-
-                <!-- Gold Multiplier -->
-                ${renderToggleInputCard({
-                  labelKey: "single_modal.gold_multiplier",
-                  checked: this.goldMultiplier,
-                  onClick: goldMultiplierHandlers.click,
-                  input: renderToggleInputCardInput({
-                    id: "gold-multiplier-value",
-                    min: 0.1,
-                    max: 1000,
-                    step: "any",
-                    value: this.goldMultiplierValue ?? "",
-                    ariaLabel: translateText("single_modal.gold_multiplier"),
-                    placeholder: translateText(
-                      "single_modal.gold_multiplier_placeholder",
-                    ),
-                    onChange: this.handleGoldMultiplierValueChanges,
-                    onKeyDown: this.handleGoldMultiplierValueKeyDown,
-                  }),
-                })}
-
-                <!-- Starting Gold -->
-                ${renderToggleInputCard({
-                  labelKey: "single_modal.starting_gold",
-                  checked: this.startingGold,
-                  onClick: startingGoldHandlers.click,
-                  input: renderToggleInputCardInput({
-                    id: "starting-gold-value",
-                    min: 0,
-                    max: 1000000000,
-                    step: 100000,
-                    value: this.startingGoldValue ?? "",
-                    ariaLabel: translateText("single_modal.starting_gold"),
-                    placeholder: translateText(
-                      "single_modal.starting_gold_placeholder",
-                    ),
-                    onInput: this.handleStartingGoldValueChanges,
-                    onKeyDown: this.handleStartingGoldValueKeyDown,
-                  }),
-                })}
-              </div>
-            </div>
-
-            <!-- Enabled Items -->
-            <div class="space-y-6">
-              <div
-                class="flex items-center gap-4 pb-2 border-b border-white/10"
-              >
-                <div
-                  class="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                    class="w-5 h-5"
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <!-- Bots Slider -->
+                  <div
+                    class="col-span-2 rounded-xl p-4 flex flex-col justify-center min-h-[100px] border transition-all duration-200 ${this
+                      .bots > 0
+                      ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
+                      : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20 opacity-80"}"
                   >
-                    <path
-                      fill-rule="evenodd"
-                      d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm0 8.625a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM15.375 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zM7.5 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <h3
-                  class="text-lg font-bold text-white uppercase tracking-wider"
-                >
-                  ${translateText("host_modal.enables_title")}
-                </h3>
-              </div>
-              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                ${renderUnitTypeOptions({
-                  disabledUnits: this.disabledUnits,
-                  toggleUnit: this.toggleUnit.bind(this),
-                })}
-              </div>
-            </div>
+                    <fluent-slider
+                      min="0"
+                      max="400"
+                      step="1"
+                      .value=${this.bots}
+                      labelKey="host_modal.bots"
+                      disabledKey="host_modal.bots_disabled"
+                      @value-changed=${this.handleBotsChange}
+                    ></fluent-slider>
+                  </div>
 
-            <!-- Player List -->
-            <lobby-player-view
-              .gameMode=${this.gameMode}
-              .clients=${this.clients}
-              .lobbyCreatorClientID=${this.lobbyCreatorClientID}
-              .teamCount=${this.teamCount}
-              .nationCount=${this.nationCount}
-              .disableNations=${this.disableNations}
-              .isCompactMap=${this.compactMap}
-              .onKickPlayer=${(clientID: string) => this.kickPlayer(clientID)}
-            ></lobby-player-view>
+                  ${!(
+                    this.gameMode === GameMode.Team &&
+                    this.teamCount === HumansVsNations
+                  )
+                    ? this.renderOptionToggle(
+                        "host_modal.disable_nations",
+                        this.disableNations,
+                        this.handleDisableNationsChange,
+                      )
+                    : ""}
+                  ${this.renderOptionToggle(
+                    "host_modal.instant_build",
+                    this.instantBuild,
+                    this.handleInstantBuildChange,
+                  )}
+                  ${this.renderOptionToggle(
+                    "host_modal.random_spawn",
+                    this.randomSpawn,
+                    this.handleRandomSpawnChange,
+                  )}
+                  ${this.renderOptionToggle(
+                    "host_modal.donate_gold",
+                    this.donateGold,
+                    this.handleDonateGoldChange,
+                  )}
+                  ${this.renderOptionToggle(
+                    "host_modal.donate_troops",
+                    this.donateTroops,
+                    this.handleDonateTroopsChange,
+                  )}
+                  ${this.renderOptionToggle(
+                    "host_modal.infinite_gold",
+                    this.infiniteGold,
+                    this.handleInfiniteGoldChange,
+                  )}
+                  ${this.renderOptionToggle(
+                    "host_modal.infinite_troops",
+                    this.infiniteTroops,
+                    this.handleInfiniteTroopsChange,
+                  )}
+                  ${this.renderOptionToggle(
+                    "host_modal.compact_map",
+                    this.compactMap,
+                    this.handleCompactMapChange,
+                  )}
+
+                  <!-- Max Timer -->
+                  ${renderToggleInputCard({
+                    labelKey: "host_modal.max_timer",
+                    checked: this.maxTimer,
+                    onClick: maxTimerHandlers.click,
+                    input: renderToggleInputCardInput({
+                      min: 0,
+                      max: 120,
+                      value: this.maxTimerValue ?? 0,
+                      ariaLabel: translateText("host_modal.max_timer"),
+                      placeholder: translateText("host_modal.mins_placeholder"),
+                      onInput: this.handleMaxTimerValueChanges,
+                      onKeyDown: this.handleMaxTimerValueKeyDown,
+                    }),
+                  })}
+
+                  <!-- Spawn Immunity -->
+                  ${renderToggleInputCard({
+                    labelKey: "host_modal.player_immunity_duration",
+                    checked: this.spawnImmunity,
+                    onClick: spawnImmunityHandlers.click,
+                    input: renderToggleInputCardInput({
+                      min: 0,
+                      max: 120,
+                      step: 1,
+                      value: this.spawnImmunityDurationMinutes ?? 0,
+                      ariaLabel: translateText(
+                        "host_modal.player_immunity_duration",
+                      ),
+                      placeholder: translateText("host_modal.mins_placeholder"),
+                      onInput: this.handleSpawnImmunityDurationInput,
+                      onKeyDown: this.handleSpawnImmunityDurationKeyDown,
+                    }),
+                  })}
+
+                  <!-- Gold Multiplier -->
+                  ${renderToggleInputCard({
+                    labelKey: "single_modal.gold_multiplier",
+                    checked: this.goldMultiplier,
+                    onClick: goldMultiplierHandlers.click,
+                    input: renderToggleInputCardInput({
+                      id: "gold-multiplier-value",
+                      min: 0.1,
+                      max: 1000,
+                      step: "any",
+                      value: this.goldMultiplierValue ?? "",
+                      ariaLabel: translateText("single_modal.gold_multiplier"),
+                      placeholder: translateText(
+                        "single_modal.gold_multiplier_placeholder",
+                      ),
+                      onChange: this.handleGoldMultiplierValueChanges,
+                      onKeyDown: this.handleGoldMultiplierValueKeyDown,
+                    }),
+                  })}
+
+                  <!-- Starting Gold -->
+                  ${renderToggleInputCard({
+                    labelKey: "single_modal.starting_gold",
+                    checked: this.startingGold,
+                    onClick: startingGoldHandlers.click,
+                    input: renderToggleInputCardInput({
+                      id: "starting-gold-value",
+                      min: 0,
+                      max: 1000000000,
+                      step: 100000,
+                      value: this.startingGoldValue ?? "",
+                      ariaLabel: translateText("single_modal.starting_gold"),
+                      placeholder: translateText(
+                        "single_modal.starting_gold_placeholder",
+                      ),
+                      onInput: this.handleStartingGoldValueChanges,
+                      onKeyDown: this.handleStartingGoldValueKeyDown,
+                    }),
+                  })}
+                </div>
+              </div>
+
+              <!-- Enabled Items -->
+              <div class="space-y-6">
+                <div
+                  class="flex items-center gap-4 pb-2 border-b border-white/10"
+                >
+                  <div
+                    class="w-8 h-8 rounded-lg bg-teal-500/20 flex items-center justify-center text-teal-400"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                      class="w-5 h-5"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm0 8.625a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zM15.375 12a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zM7.5 10.875a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </div>
+                  <h3
+                    class="text-lg font-bold text-white uppercase tracking-wider"
+                  >
+                    ${translateText("host_modal.enables_title")}
+                  </h3>
+                </div>
+                <div
+                  class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4"
+                >
+                  ${renderUnitTypeOptions({
+                    disabledUnits: this.disabledUnits,
+                    toggleUnit: this.toggleUnit.bind(this),
+                  })}
+                </div>
+              </div>
+
+              <!-- Player List -->
+              <lobby-player-view
+                .gameMode=${this.gameMode}
+                .clients=${this.clients}
+                .lobbyCreatorClientID=${this.lobbyCreatorClientID}
+                .teamCount=${this.teamCount}
+                .nationCount=${this.nationCount}
+                .disableNations=${this.disableNations}
+                .isCompactMap=${this.compactMap}
+                .onKickPlayer=${(clientID: string) => this.kickPlayer(clientID)}
+              ></lobby-player-view>
+            </div>
           </div>
-        </div>
 
-        <!-- Player List / footer -->
-        <div class="p-6 pt-4 border-t border-white/10 bg-black/20 shrink-0">
-          <button
-            class="w-full py-4 text-sm font-bold text-white uppercase tracking-widest bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-lg shadow-blue-900/20 hover:shadow-blue-900/40 hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none"
-            @click=${this.startGame}
-            ?disabled=${this.clients.length < 2}
-          >
-            ${this.clients.length === 1
-              ? translateText("host_modal.waiting")
-              : translateText("host_modal.start")}
-          </button>
+          <!-- Player List / footer -->
+          <div class="p-6 pt-4 border-t border-white/10 bg-black/20 shrink-0">
+            <button
+              class="w-full py-4 text-sm font-bold text-white uppercase tracking-widest bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-all shadow-lg shadow-blue-900/20 hover:shadow-blue-900/40 hover:-translate-y-0.5 active:translate-y-0 disabled:transform-none"
+              @click=${this.startGame}
+              ?disabled=${this.clients.length < 2}
+            >
+              ${this.clients.length === 1
+                ? translateText("host_modal.waiting")
+                : translateText("host_modal.start")}
+            </button>
+          </div>
         </div>
       </div>
     `;
