@@ -281,8 +281,9 @@ export class SinglePlayerModal extends BaseModal {
 
             <!-- Difficulty Selection -->
               <lobby-nation-difficulty
-                selected=${this.selectedDifficulty}
-                onSelect=${(d: Difficulty) => this.handleDifficultySelection(d)}
+                .selected=${this.selectedDifficulty}
+                .disabled=${this.disableNations}
+                .onSelect=${(d: Difficulty) => this.handleDifficultySelection(d)}
               ></lobby-nation-difficulty>
 
               <!-- Game Mode Selection -->

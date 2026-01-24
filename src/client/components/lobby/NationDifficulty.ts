@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { translateText } from "src/client/Utils";
-import { Difficulty } from "src/core/game/Game";
+import { Difficulty } from "../../../core/game/Game";
+import { translateText } from "../../Utils";
 
 /**
  * Nation difficulty selector used in lobby creation.
@@ -9,7 +9,7 @@ import { Difficulty } from "src/core/game/Game";
 @customElement("lobby-nation-difficulty")
 export class LobbyNationDifficulty extends LitElement {
   @property({ type: String }) selected: Difficulty = Difficulty.Easy;
-  @property({ type: Boolean }) disableNations: boolean = false;
+  @property({ type: Boolean }) disabled: boolean = false;
   @property({ attribute: false }) onSelect?: (difficulty: Difficulty) => void;
 
   createRenderRoot() {
@@ -17,14 +17,14 @@ export class LobbyNationDifficulty extends LitElement {
   }
 
   private handleSelect(value: Difficulty) {
-    if (!this.disableNations && this.onSelect) {
+    if (!this.disabled && this.onSelect) {
       this.onSelect(value);
     }
   }
 
   render() {
     return html`
-      <div class="space-y-6">
+      <div class="space-y-6 mb-10">
         <div class="flex items-center gap-4 pb-2 border-b border-white/10">
           <div
             class="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center text-green-400"
@@ -57,14 +57,14 @@ export class LobbyNationDifficulty extends LitElement {
                     .selected === value
                     ? "bg-blue-500/20 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.2)]"
                     : "bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20"} ${this
-                    .disableNations
+                    .disabled
                     ? "opacity-30 cursor-not-allowed grayscale"
                     : ""}"
                   @click=${() => this.handleSelect(value)}
-                  ?disabled=${this.disableNations}
+                  ?disabled=${this.disabled}
                 >
                   <difficulty-display
-                    class="${this.disableNations
+                    class="${this.disabled
                       ? "pointer-events-none"
                       : ""} transform scale-125"
                     .difficultyKey=${key}
