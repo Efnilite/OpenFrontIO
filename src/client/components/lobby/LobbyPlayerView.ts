@@ -1,7 +1,7 @@
 import { LitElement, html } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import { repeat } from "lit/directives/repeat.js";
-import { PastelTheme } from "../../core/configuration/PastelTheme";
+import { PastelTheme } from "../../../core/configuration/PastelTheme";
 import {
   ColoredTeams,
   Duos,
@@ -12,11 +12,11 @@ import {
   Quads,
   Team,
   Trios,
-} from "../../core/game/Game";
-import { getCompactMapNationCount } from "../../core/game/NationCreation";
-import { assignTeamsLobbyPreview } from "../../core/game/TeamAssignment";
-import { ClientInfo, TeamCountConfig } from "../../core/Schemas";
-import { translateText } from "../Utils";
+} from "../../../core/game/Game";
+import { getCompactMapNationCount } from "../../../core/game/NationCreation";
+import { assignTeamsLobbyPreview } from "../../../core/game/TeamAssignment";
+import { ClientInfo, TeamCountConfig } from "../../../core/Schemas";
+import { translateText } from "../../Utils";
 
 export interface TeamPreviewData {
   team: Team;

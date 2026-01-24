@@ -17,7 +17,7 @@ import { terrainMapFileLoader } from "./TerrainMapFileLoader";
 import { BaseModal } from "./components/BaseModal";
 import "./components/CopyButton";
 import "./components/Difficulties";
-import "./components/LobbyPlayerView";
+import "./components/lobby/LobbyPlayerView";
 import { modalHeader } from "./components/ui/ModalHeader";
 @customElement("join-private-lobby-modal")
 export class JoinPrivateLobbyModal extends BaseModal {

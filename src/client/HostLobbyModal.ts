@@ -26,7 +26,7 @@ import "./components/Difficulties";
 import "./components/FluentSlider";
 import "./components/lobby/LobbyGameMode";
 import "./components/lobby/LobbyNationDifficulty";
-import "./components/LobbyPlayerView";
+import "./components/lobby/LobbyPlayerView";
 import "./components/Maps";
 import { modalHeader } from "./components/ui/ModalHeader";
 import { crazyGamesSDK } from "./CrazyGamesSDK";
